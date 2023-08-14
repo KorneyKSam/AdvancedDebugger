@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net7.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <Title>Advanced Debugger</Title>
+    <Description>Custom colors for different classes, writing logs in file.</Description>
+    <PackageId>advanced-debugger</PackageId>
+    <Version>1.0.0</Version>
+    <Authors>NoOne</Authors>
+  </PropertyGroup>
+
+</Project>
