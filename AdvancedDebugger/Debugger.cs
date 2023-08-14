@@ -14,7 +14,7 @@ namespace AdvancedDebugger
         private const string DefaultColor = "#BDC7F0";
         private const char SharpSymbol = '#';
 
-        private static Dictionary<string, string> m_ClassColors = new();
+        private static Dictionary<string, string> m_ClassColors = new Dictionary<string, string>();
         private static Dictionary<LogType, LogMethod>? m_LogMethods;
         private static string m_LogFilePath;
         private static string m_DateTimeFormat;
@@ -22,7 +22,7 @@ namespace AdvancedDebugger
         private static bool m_UseMarkupFormat;
         private static bool m_EnableLogWriting;
 
-        private static Dictionary<LogType, string> m_LogColors = new()
+        private static Dictionary<LogType, string> m_LogColors = new Dictionary<LogType, string>()
         {
             { LogType.Debbug, DefaultColor },
             { LogType.Info, "#ffffff" },
