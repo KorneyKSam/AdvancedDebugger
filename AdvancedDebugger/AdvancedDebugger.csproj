@@ -9,7 +9,22 @@
     <Description>Custom colors for different classes, writing logs in file.</Description>
     <PackageId>advanced-debugger</PackageId>
     <Version>1.0.0</Version>
-    <Authors>NoOne</Authors>
+    <Authors>KorneyKSam</Authors>
+    <PackageProjectUrl>https://github.com/KorneyKSam/AdvancedDebugger</PackageProjectUrl>
+    <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <RepositoryUrl>https://github.com/KorneyKSam/AdvancedDebugger</RepositoryUrl>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\LICENSE.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+    <None Include="..\README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+  </ItemGroup>
 
 </Project>

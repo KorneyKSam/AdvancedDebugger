@@ -1,0 +1,1 @@
+AdvancedDebugger is 100% free to use.
