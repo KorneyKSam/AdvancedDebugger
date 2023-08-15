@@ -1,0 +1,20 @@
+{
+  "name": "com.noone.advanced-debugger",
+  "version": "1.0.1",
+  "displayName": "Advanced Debugger",
+  "description": "The advanced debugger shows detailed information about where the log message was called from, colorizes class names, and writes logs to a file.",
+  "unity": "2021.3",
+  "unityRelease": "0b5",
+  "licensesUrl": "https://licenses.nuget.org/MIT",
+  "keywords": [
+    "Debugger",
+    "Logger",
+    "Log messages"
+  ],
+  "author": {
+    "name": "KorneyKSam",
+    "email": "korneyksam@gmail.com",
+    "url": "https://github.com/KorneyKSam/AdvancedDebugger"
+  },
+  "type": "tool"
+}

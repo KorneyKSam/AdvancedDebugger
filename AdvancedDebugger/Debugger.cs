@@ -1,5 +1,8 @@
-﻿using System.Drawing;
+﻿using System;
+using System.Collections.Generic;
+using System.Drawing;
 using System.Globalization;
+using System.IO;
 using System.Runtime.CompilerServices;
 
 namespace AdvancedDebugger
@@ -150,7 +153,7 @@ namespace AdvancedDebugger
 
         private static string AddSharpIfNeed(string hexColor)
         {
-            if (hexColor.First() != SharpSymbol)
+            if (hexColor[0] != SharpSymbol)
             {
                 hexColor = $"{SharpSymbol}{hexColor}";
             }
