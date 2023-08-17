@@ -12,7 +12,7 @@ namespace AdvancedDebugger
         public static bool EnableMarkupFormat { get; set; }
 
         /// <summary>
-        /// Log writing function does not work without logFilePath
+        /// Log writing does not work without logFilePath
         /// </summary>
         public static bool EnableLogWriting { get; set; }
 
