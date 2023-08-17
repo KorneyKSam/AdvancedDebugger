@@ -1,147 +1,107 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Runtime.CompilerServices;
 
 namespace AdvancedDebugger
 {
     public static class Debugger
     {
-        public delegate void LogMethod(string log);
+        public static bool EnableMarkupFormat { get; set; }
 
-        private const string AddColorMessage = "Added a color for the class:";
-        private const string LogWritingFailedMessage = "Log writing switched to: false";
-        private const string ReplaceColorMessage = "Replace color class:";
-        private const string DefaultColor = "#BDC7F0";
-        private const char SharpSymbol = '#';
+        /// <summary>
+        /// Log writing function does not work without logFilePath
+        /// </summary>
+        public static bool EnableLogWriting { get; set; }
 
-        private static Dictionary<string, string> m_ClassColors = new Dictionary<string, string>();
-        private static Dictionary<LogType, LogMethod>? m_LogMethods;
+        private static List<DebuggerLogType> m_LogTypes;
+        private static List<DebuggerColorization> m_CallersColorization;
+        private static LogMethod m_DefaultLogMethod;
         private static string m_LogFilePath;
         private static string m_DateTimeFormat;
-        private static string m_DebuggerColor = "#45C9B0";
-        private static bool m_UseMarkupFormat;
-        private static bool m_EnableLogWriting;
 
-        private static Dictionary<LogType, string> m_LogColors = new Dictionary<LogType, string>()
+        public static void Initialize(List<DebuggerLogType> logTypes, LogMethod defaultLogMethod)
         {
-            { LogType.Debbug, DefaultColor },
-            { LogType.Info, "#ffffff" },
-            { LogType.Warning, "#FFA500" },
-            { LogType.Error, "#FF0000" },
-        };
-
-        public static void Initialize(LogMethod debugMethod, LogMethod infoMethod,
-                                      LogMethod warningMethod, LogMethod errorMethod,
-                                      bool useMarkupFormat = false)
-        {
-            m_LogMethods = new Dictionary<LogType, LogMethod>()
-            {
-                { LogType.Debbug, debugMethod },
-                { LogType.Info, infoMethod },
-                { LogType.Warning, warningMethod },
-                { LogType.Error, errorMethod },
-            };
-
-            m_UseMarkupFormat = useMarkupFormat;
-            AddPrefixColorForClass(nameof(Debugger), m_DebuggerColor);
+            Initialize(logTypes, defaultLogMethod, null, null);
         }
 
-        public static void InitializeLogWriting(string logFilePath, bool enableLogWriting = true, string dateTimeFormat = "yyyy-MM-dd HH:mm:ss.fff")
+        public static void Initialize(List<DebuggerLogType> logTypes, LogMethod defaultLogMethod, List<DebuggerColorization> callersColorization)
         {
-            m_EnableLogWriting = enableLogWriting;
+            Initialize(logTypes, callersColorization, defaultLogMethod, null);
+        }
+
+        public static void Initialize(List<DebuggerLogType> logTypes, LogMethod defaultLogMethod, string logFilePath, string dateTimeFormat = DebuggerConstants.DefaultDateTimeFormat)
+        {
+            Initialize(logTypes, null, defaultLogMethod, logFilePath, dateTimeFormat);
+        }
+
+        public static void Initialize(List<DebuggerLogType> logTypes, List<DebuggerColorization> callersColorization,
+                                      LogMethod logMethod, string logFilePath, string dateTimeFormat = DebuggerConstants.DefaultDateTimeFormat)
+        {
+            m_LogTypes = logTypes;
+            m_DefaultLogMethod = logMethod;
             m_LogFilePath = logFilePath;
             m_DateTimeFormat = dateTimeFormat;
+            m_CallersColorization = callersColorization;
         }
 
-        public static void SetLogColors(Color debuggerPrefixColor, Color debugColor, Color infoColor, Color warningColor, Color errorColor)
+        public static void Log(string message, string logType,
+                              [CallerMemberName] string callerMemberName = "",
+                              [CallerFilePath] string callerPath = "",
+                              [CallerLineNumber] int callerLine = 0)
         {
-            SetLogColors(ColorHexConverter.GetStringFromColor(debuggerPrefixColor),
-                         ColorHexConverter.GetStringFromColor(debugColor),
-                         ColorHexConverter.GetStringFromColor(infoColor),
-                         ColorHexConverter.GetStringFromColor(warningColor),
-                         ColorHexConverter.GetStringFromColor(errorColor));
-        }
+            var callerName = Path.GetFileNameWithoutExtension(callerPath);
+            var callerInfo = $"{callerName}.{callerMemberName} : line {callerLine} - ";
 
-        public static void SetLogColors(string debuggerPrefixColor, string debuggColor, string infoColor, string warningColor, string errorColor)
-        {
-            m_DebuggerColor = debuggerPrefixColor;
-            AddPrefixColorForClass(nameof(Debugger), m_DebuggerColor);
-            m_LogColors[LogType.Debbug] = debuggColor;
-            m_LogColors[LogType.Info] = infoColor;
-            m_LogColors[LogType.Warning] = warningColor;
-            m_LogColors[LogType.Error] = errorColor;
-        }
 
-        public static void AddPrefixColorForClass<T>(Color color)
-        {
-            var hexColor = ColorHexConverter.GetStringFromColor(color);
-            AddPrefixColorForClass<T>(hexColor);
-        }
+            var debuggerLogType = GetLogType(logType);
 
-        public static void AddPrefixColorForClass<T>(string hexColor)
-        {
-            var className = typeof(T).Name;
-            AddPrefixColorForClass(className, hexColor);
-        }
+            LogMethod logMethod;
 
-        public static void AddPrefixColorForClass(string className, string hexColor)
-        {
-            hexColor = AddSharpIfNeed(hexColor);
-            if (!m_ClassColors.ContainsKey(className))
+            if (debuggerLogType != null)
             {
-                m_ClassColors.Add(className, hexColor);
-                Log($"{AddColorMessage} {className} ({hexColor})");
+                logMethod = debuggerLogType.Log;
+
+                if (EnableLogWriting && debuggerLogType.IsLoggedToFile)
+                {
+                    WriteLogToFile(GetDateTimeNow(), logType, callerInfo, message);
+                }
             }
             else
             {
-                m_ClassColors[className] = hexColor;
-                Log($"{ReplaceColorMessage} {className} ({hexColor})");
+                logMethod = m_DefaultLogMethod;
+                m_DefaultLogMethod?.Invoke($"{DebuggerConstants.DebuggerPrefix}{DebuggerConstants.LogTypeNotFoundMessage}");
+            }
+
+            if (EnableMarkupFormat)
+            {
+                logMethod?.Invoke($"{Colorize(callerInfo, GetCallerHexColor(callerName), bold: true)} " +
+                                  $"{Colorize(message, debuggerLogType?.HexColor ?? DebuggerConstants.DefaultColor)}");
+            }
+            else
+            {
+                logMethod?.Invoke($"{callerInfo} {message}");
             }
         }
 
-        public static void UseMarkupFormat(bool useMarkupFormat)
+        private static void WriteLogToFile(string time, string logType, string callerInfo, string message)
         {
-            m_UseMarkupFormat = useMarkupFormat;
-        }
-
-        public static void UseLogWriting(bool enableLogWriting)
-        {
-            m_EnableLogWriting = enableLogWriting;
-        }
-
-        public static void Log(string message, LogType logType = LogType.Debbug,
-                 [CallerMemberName] string callerName = "",
-                 [CallerFilePath] string callerPath = "",
-                 [CallerLineNumber] int callerLine = 0)
-        {
-            var callerInfo = CreateCallerInfo(callerName, callerPath, callerLine);
-            var infoPrefix = GetInfoPrefix(callerInfo, m_UseMarkupFormat);
-            var logMessage = $"{infoPrefix}{(m_UseMarkupFormat ? Colorize(message, m_LogColors[logType]) : message)}";
-
-            TryToWriteLog(message, logType, callerInfo, logMessage);
-
-            m_LogMethods?[logType].Invoke(logMessage);
-        }
-
-        private static void TryToWriteLog(string message, LogType logType, CallerInfo callerInfo, string logMessage)
-        {
-            if (m_EnableLogWriting && logType != LogType.Debbug)
+            if (!string.IsNullOrEmpty(m_LogFilePath))
             {
                 try
                 {
                     using var fileStream = File.Open(m_LogFilePath, FileMode.OpenOrCreate);
                     fileStream.Seek(0, SeekOrigin.End);
                     using var streamWriter = new StreamWriter(fileStream);
-                    var writedLog = $"{GetDateTimeNow()} {logType} {(m_UseMarkupFormat ? $"{GetInfoPrefix(callerInfo, false)}{message}" : logMessage)}";
+                    var writedLog = $"{time} {logType} {callerInfo}{message}";
                     streamWriter.WriteLine(writedLog);
                 }
                 catch (Exception exception)
                 {
-                    m_EnableLogWriting = false;
-                    Log($"{exception.Message} {LogWritingFailedMessage}", LogType.Error);
+                    EnableLogWriting = false;
+                    m_DefaultLogMethod?.Invoke($"{DebuggerConstants.DebuggerPrefix}{DebuggerConstants.LogWritingFailedMessage}\n{exception.Message} ");
                 }
             }
         }
@@ -151,37 +111,15 @@ namespace AdvancedDebugger
             return DateTime.UtcNow.ToString(m_DateTimeFormat, CultureInfo.InvariantCulture);
         }
 
-        private static string AddSharpIfNeed(string hexColor)
+        private static string GetCallerHexColor(string callerName)
         {
-            if (hexColor[0] != SharpSymbol)
-            {
-                hexColor = $"{SharpSymbol}{hexColor}";
-            }
-
-            return hexColor;
+            var foundColorization = m_CallersColorization?.FirstOrDefault(c => c.Name == callerName);
+            return foundColorization?.HexColor ?? DebuggerConstants.DefaultColor;
         }
 
-        private static string GetInfoPrefix(CallerInfo callerInfo, bool useMrakupFormat)
+        private static DebuggerLogType GetLogType(string logType)
         {
-            string hexColor = GetHexColor(callerInfo);
-            string prefix = $"{callerInfo.ClassName}.{callerInfo.MethodName} : line {callerInfo.Line} - ";
-            return useMrakupFormat ? Colorize(prefix, hexColor ?? DefaultColor, bold: true) : prefix;
-        }
-
-        private static string GetHexColor(CallerInfo callerInfo)
-        {
-            m_ClassColors.TryGetValue(callerInfo.ClassName, out var hexColor);
-            return string.IsNullOrEmpty(hexColor) ? DefaultColor : hexColor;
-        }
-
-        private static CallerInfo CreateCallerInfo(string callerName, string callerPath, int callerLine)
-        {
-            return new CallerInfo()
-            {
-                ClassName = Path.GetFileNameWithoutExtension(callerPath),
-                MethodName = callerName,
-                Line = callerLine
-            };
+            return m_LogTypes?.FirstOrDefault(c => c.Name == logType);
         }
 
         private static string Colorize(string text, string color, bool bold = false)
