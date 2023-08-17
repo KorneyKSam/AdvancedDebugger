@@ -9,6 +9,9 @@ namespace AdvancedDebugger
 {
     public static class Debugger
     {
+        /// <summary>
+        /// If set to true, the Debugger uses DebuggerLogType and DebuggerColorization collections to colorize log messages
+        /// </summary>
         public static bool EnableMarkupFormat { get; set; }
 
         /// <summary>

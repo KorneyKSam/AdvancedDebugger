@@ -9,16 +9,31 @@ namespace AdvancedDebugger
 
         private const char SharpSymbol = '#';
 
-        public DebuggerColorization(string name, Color color) : this(name, ColorHexConverter.GetHexColor(color)) { }
-        public DebuggerColorization(string name, UnityEngine.Color color) : this(name, ColorHexConverter.GetHexColor(color)) { }
-        public DebuggerColorization(string name) : this(name, DebuggerConstants.DefaultColor) { }
-
-        public DebuggerColorization(string name, string hexColor)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="name">Caller (Class) name</param>
+        /// <param name="hexColor">Hex color format: #FFFFFF</param>
+        public DebuggerColorization(string name, string hexColor = DebuggerConstants.DefaultColor)
         {
             Name = name;
             hexColor = AddSharpIfNeed(hexColor);
             HexColor = hexColor;
         }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="name">Caller (Class) name</param>
+        /// <param name="color"></param>
+        public DebuggerColorization(string name, Color color) : this(name, ColorHexConverter.GetHexColor(color)) { }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="name">Caller (Class) name</param>
+        /// <param name="color"></param>
+        public DebuggerColorization(string name, UnityEngine.Color color) : this(name, ColorHexConverter.GetHexColor(color)) { }
 
         private static string AddSharpIfNeed(string hexColor)
         {
