@@ -56,7 +56,7 @@ namespace AdvancedDebugger
                               [CallerLineNumber] int callerLine = 0)
         {
             var callerName = Path.GetFileNameWithoutExtension(callerPath);
-            var callerInfo = $"{callerName}.{callerMemberName} : line {callerLine} - ";
+            var callerInfo = BuildCallerInfo(callerMemberName, callerLine, callerName);
 
 
             var debuggerLogType = GetLogType(logType);
@@ -70,6 +70,11 @@ namespace AdvancedDebugger
                 if (EnableLogWriting && debuggerLogType.IsLoggedToFile)
                 {
                     WriteLogToFile(GetDateTimeNow(), logType, callerInfo, message);
+                }
+
+                if (debuggerLogType.ShowSystemInfo == false)
+                {
+                    callerInfo = string.Empty;
                 }
             }
             else
@@ -107,6 +112,11 @@ namespace AdvancedDebugger
                     m_DefaultLogMethod?.Invoke($"{DebuggerConstants.DebuggerPrefix}{DebuggerConstants.LogWritingFailedMessage}\n{exception.Message} ");
                 }
             }
+        }
+
+        private static string BuildCallerInfo(string callerMemberName, int callerLine, string callerName)
+        {
+            return $"{callerName}.{callerMemberName} : line {callerLine} - ";
         }
 
         private static string GetDateTimeNow()

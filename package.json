@@ -1,6 +1,6 @@
 {
   "name": "com.noone.advanced-debugger",
-  "version": "2.0.0",
+  "version": "2.0.4",
   "displayName": "Advanced Debugger",
   "description": "The advanced debugger shows detailed information about where the log message was called from, colorizes class names, and writes logs to a file.",
   "unity": "2021.3",
