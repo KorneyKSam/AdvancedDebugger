@@ -85,7 +85,7 @@ namespace AdvancedDebugger
 
             if (EnableMarkupFormat)
             {
-                logMethod?.Invoke($"{Colorize(callerInfo, GetCallerHexColor(callerName), bold: true)} " +
+                logMethod?.Invoke($"{Colorize(callerInfo, GetCallerHexColor(callerName), bold: true)}" +
                                   $"{Colorize(message, debuggerLogType?.HexColor ?? DebuggerConstants.DefaultColor)}");
             }
             else
